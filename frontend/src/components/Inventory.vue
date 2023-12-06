@@ -1,13 +1,14 @@
 <template>
     <div id="inventory">
         <ul>
-            <li class="disk" v-if="isDisks" v-for="disk in disks" :key="disk.name" @click="$emit('open', disk.name)">
+            <li class="disk" v-if="isDisks" v-for="disk in disks" :key="disk.name" @dblclick="$emit('open', disk.name)">
                 <div :style="paintDisk(disk)">
                     <span>{{ disk.name }}</span>
                     <span>{{ computeSize(disk.used) }} / {{ computeSize(disk.size) }}</span>
                 </div>
             </li>
-            <li class="file" v-else v-for="item in items" :key="item.name" @click="openTarget(item)">
+            <li class="file" v-else v-for="item in items" :key="item.name" @dblclick="openTarget(item)">
+                <span>{{ item.isFolder ? "" : getExtension(item.name) }}</span>
                 <span>{{ item.name }}</span>
                 <span>{{ item.isFolder ? "" : computeSize(item.size) }}</span>
                 <span>{{ item.name === ".." ? "" : new Date(item.time).toLocaleString() }}</span>
@@ -17,6 +18,7 @@
 </template>
 
 <script lang="ts">
+import { fileExtension } from '@ultirequiem/file-extension'
 import { fs } from '../../wailsjs/go/models'
 
 export default {
@@ -36,6 +38,9 @@ export default {
     },
     emits: ['open'],
     methods: {
+        getExtension(name: string) {
+            return fileExtension(name)
+        },
         computeSize(size: number) {
             if (size === 0) { return `0 Bytes` }
 
@@ -76,6 +81,7 @@ export default {
         background-color: white;
         border: 4px solid black;
         margin-block: 6px;
+        user-select: none;
 
         &.disk {
             position: relative;
@@ -97,18 +103,17 @@ export default {
 
         &.file {
             display: grid;
-            grid-template-columns: 60% 14% 26%;
+            grid-template-columns: 5% 55% 14% 26%;
 
             padding-block: 4px;
             padding-inline: 8px;
 
-            >:nth-child(1) { 
+            >:nth-child(1), >:nth-child(2) { 
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap; 
             }
-            >:nth-child(2) { text-align: right; }
-            >:nth-child(3) { text-align: right; }
+            >:nth-child(3), >:nth-child(4) { text-align: right; }
         }
     }
 }

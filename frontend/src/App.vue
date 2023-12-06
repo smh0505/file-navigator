@@ -1,7 +1,7 @@
 <template>
     <div id="background">
         <div id="search-box">
-            <input type="text" v-model="directory" @keypress.enter="search">
+            <input type="text" v-model="directory" @click="selectAll" @keypress.enter="search">
         </div>
         <Inventory :items="items" :disks="disks" :is-disks="isDisks" @open="openFolder"></Inventory>
     </div>
@@ -54,7 +54,11 @@ export default {
         search(e: KeyboardEvent) {
             const target = e.target as HTMLElement
             target.blur()
-            this.openDirectory(this.directory)
+            this.openDirectory(this.directory + "\\")
+        },
+        selectAll(e: MouseEvent) {
+            const target = e.target as HTMLInputElement
+            target.select()
         }
     },
     mounted() {
