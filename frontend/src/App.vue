@@ -1,60 +1,42 @@
 <template>
     <div id="background">
         <div id="search-box">
-            <input type="text" v-model="directory" @click="selectAll" @keypress.enter="search">
+            <input type="text" v-model="inventory.directory" @click="selectAll" @keypress.enter="search">
         </div>
-        <Inventory :items="items" :disks="disks" :is-disks="isDisks" @open="openFolder"></Inventory>
+        <Inventory @open="openFolder" @start="openTarget"></Inventory>
     </div>
 </template>
 
 <script lang="ts">
-import { fs } from '../wailsjs/go/models'
+import { useInventory } from './stores/Inventory'
 import Inventory from './components/Inventory.vue'
-import { ListItems } from '../wailsjs/go/main/App'
+import { fs } from '../wailsjs/go/models'
+import { Execute } from '../wailsjs/go/main/App'
 
 export default {
     data: () => ({
+        inventory: useInventory(),
         isDisks: false,
-        directory: "",
-        prev: "",
-        items: [] as fs.Item[],
-        disks: [] as fs.Disk[]
     }),
     components: { Inventory },
     methods: {
-        openDirectory(directory: string) {
-            ListItems(directory).then(res => {
-                if (res.success) {
-                    this.prev = this.directory = res.directory
-                    if (!res.directory) {
-                        this.isDisks = true
-                        this.disks = structuredClone(res.disks)
-                    } else {
-                        this.isDisks = false
-                        this.items = structuredClone(res.items)
-                        this.items.splice(0, 0, new fs.Item({
-                            name: "..",
-                            isFolder: true,
-                            size: 0
-                        }))
-                    }
-                }
-                else { this.directory = this.prev }
-            })
+        openTarget(target: fs.Item) {
+            if (target.isFolder) this.openFolder(target.name)
+            else Execute(this.inventory.directory + "\\" + target.name)
         },
         openFolder(folder: string) {
-            let target = this.directory
+            let target = this.inventory.directory
             if (folder === ".." && !target.split("\\")[1]) {
                 target = ""
             } else {
                 target = (target ? target + "\\" + folder : folder) + "\\"
             }
-            this.openDirectory(target)
+            this.inventory.openDirectory(target)
         },
         search(e: KeyboardEvent) {
             const target = e.target as HTMLElement
             target.blur()
-            this.openDirectory(this.directory + "\\")
+            this.inventory.openDirectory(this.inventory.directory)
         },
         selectAll(e: MouseEvent) {
             const target = e.target as HTMLInputElement
@@ -62,7 +44,7 @@ export default {
         }
     },
     mounted() {
-        this.openDirectory("")
+        this.inventory.openDirectory()
     }
 }
 </script>
@@ -71,7 +53,6 @@ export default {
 #background {
     width: 100vw;
     height: 100vh;
-    background-color: gray;
 
     #search-box {
         width: 100%;

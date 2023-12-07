@@ -3,6 +3,8 @@ package main
 import (
 	"filenav/fs"
 	"context"
+
+    "github.com/skratchdot/open-golang/open"
 )
 
 // App struct
@@ -23,4 +25,8 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) ListItems(dir string) fs.Result {
     return fs.ListItems(dir)
+}
+
+func (a *App)Execute(dir string) {
+    open.Start(dir)
 }
